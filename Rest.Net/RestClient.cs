@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
@@ -196,9 +197,9 @@ namespace Rest.Net
         private string CreateQueryStringFromRequest(IRestRequest request)
         {
             string result = string.Empty;
-
-            Parameters.MergeWith(request.Parameters);
-            foreach (var parameter in Parameters)
+            
+            request.Parameters.MergeWith(Parameters);
+            foreach (var parameter in request.Parameters)
             {
                 result += $"{(string.IsNullOrEmpty(result) ? "?" : "&")}{parameter.Key}={parameter.Value}";
             }
@@ -219,8 +220,34 @@ namespace Rest.Net
             }
         }
 
+        private string UrlEncodePath(string path)
+        {
+            if (path.IndexOf('?') == -1)
+            {
+                return path;
+            }
+
+            string[] urlQuerystringParts = path.Split('?');
+            string[] qsParts = urlQuerystringParts[1].Split('&');
+
+            string result = string.Empty;
+            foreach (var qsPart in qsParts)
+            {
+                result += result == string.Empty ? "?" : "&";
+
+                string key = qsPart.Substring(0, qsPart.IndexOf('=') + 1);
+                result += key;
+
+                string value = WebUtility.UrlEncode(qsPart.Remove(0, qsPart.IndexOf('=') + 1));
+                result += value;
+            }
+
+            return urlQuerystringParts[0] + result;
+        }
+
         private Task<IRestResponse<T>> GenerateRestRequestAndExecute<T>(string path, HttpMethod method, object body, CancellationToken cancellationToken = default(CancellationToken), Action<IRestResponse<T>> callback = null)
         {
+            path = UrlEncodePath(path);
             IRestRequest request = new RestRequest(path, method);
             if (body != null)
             {
@@ -231,7 +258,7 @@ namespace Rest.Net
 
             return ExecuteAsync<T>(request, cancellationToken);
         }
-
+        
         public IRestResponse<string> Get(string path)
         {
             return GenerateRestRequestAndExecute<string>(path, HttpMethod.Get, null).Result;
