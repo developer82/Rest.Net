@@ -48,12 +48,23 @@ namespace Rest.Net
 
         public void AddContent(string content)
         {
-            Content = new StringContent(content, Encoding.UTF8, Headers.ContentType);
+            AddContent(new StringContent(content, Encoding.UTF8, Headers.ContentType));
+        }
+
+        public void AddContent(object content, string contentType)
+        {
+            Headers.Add("Content-Type", contentType);
+            Content = (HttpContent) content;
         }
 
         public void AddContent(StringContent stringContent)
         {
             Content = stringContent;
+        }
+
+        public void AddContent(FormUrlEncodedContent formUrlEncodedContent)
+        {
+            Content = formUrlEncodedContent;
         }
 
         public void SetAuthentication(Http.AuthenticationMethod authenticationMethod, string token)
