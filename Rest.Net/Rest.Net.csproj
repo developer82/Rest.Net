@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>A simple to use REST client for .NET Core</Description>
+    <Copyright>Copyright (c) 2016 Ophir Oren</Copyright>
+    <AssemblyTitle>REST.NET</AssemblyTitle>
+    <Authors>Ophir Oren</Authors>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>Rest.Net</AssemblyName>
+    <PackageId>Rest.Net</PackageId>
+    <PackageTags>REST;API;http;https;web;web client</PackageTags>
+    <PackageIconUrl>https://github.com/developer82/Rest.Net/blob/master/Logo.png?raw=true</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/developer82/Rest.Net</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/developer82/Rest.Net/blob/master/LICENSE</PackageLicenseUrl>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
+  </ItemGroup>
+
+  <Target Name="PostcompileScript" AfterTargets="Build">
+    <Exec Command="dotnet pack --no-build --configuration $(Configuration)" />
+  </Target>
+
+</Project>
