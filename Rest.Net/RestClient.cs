@@ -126,8 +126,16 @@ namespace Rest.Net
                     {
                         try
                         {
-                            object resultObject = JsonConvert.DeserializeObject<T>(rawData);
-                            response.Data = (T)resultObject;
+                            object resultObject;
+                            if (typeOfT != typeof(string))
+                            {
+                                resultObject = JsonConvert.DeserializeObject<T>(rawData);
+                                response.Data = (T)resultObject;
+                            }
+                            else
+                            {
+                                response.Data = (T)Convert.ChangeType(rawData, typeof(T));
+                            }
                         }
                         catch (Exception ex)
                         {
