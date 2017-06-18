@@ -84,13 +84,13 @@ namespace Rest.Net
 
             if (!string.IsNullOrEmpty(authentication))
             {
-                if (string.IsNullOrEmpty(Headers.AuthenticationHeader))
+                if (string.IsNullOrEmpty(Headers.AuthorizationHeader))
                 {
-                    Headers.Add("authentication", authentication);
+                    Headers.Add("Authorization", authentication);
                 }
                 else
                 {
-                    Headers["authentication"] = authentication;
+                    Headers["Authorization"] = authentication;
                 }
             }
         }

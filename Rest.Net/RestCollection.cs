@@ -13,7 +13,7 @@ namespace Rest.Net
         }
 
         public string ContentType { get; private set; } = "text/plain";
-        public string AuthenticationHeader { get; private set; }
+        public string AuthorizationHeader { get; private set; }
 
         private readonly CollectionType _collectionType = CollectionType.None;
 
@@ -53,7 +53,7 @@ namespace Rest.Net
                 }
                 else if (lowercaseName == "authentication")
                 {
-                    AuthenticationHeader = key;
+                    AuthorizationHeader = key;
                 }
             }
         }
