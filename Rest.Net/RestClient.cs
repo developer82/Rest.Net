@@ -26,7 +26,9 @@ namespace Rest.Net
         private readonly HttpClient _httpClient = new HttpClient();
         private bool _useStats = false;
         private long _totalTime = 0;
-        
+        private string _absolutePath;
+
+
         public RestClient()
         {
 
@@ -34,11 +36,13 @@ namespace Rest.Net
 
         public RestClient(string url)
         {
-            _httpClient.BaseAddress = new Uri(url);
+            SetBaseUrl(url);
         }
 
         public void SetBaseUrl(string url)
         {
+            Uri uri = new Uri(url);
+            _absolutePath = uri.AbsolutePath;
             _httpClient.BaseAddress = new Uri(url);
         }
 
@@ -192,8 +196,8 @@ namespace Rest.Net
         private Task<HttpResponseMessage> ExecuteRequest(IRestRequest request)
         {
             string queryString = CreateQueryStringFromRequest(request);
-
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.Method, request.Path + queryString);
+            
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.Method, _absolutePath + request.Path + queryString);
             
             CreateHeadersFromRequest(request, httpRequestMessage);
             httpRequestMessage.Content = request.Content;
