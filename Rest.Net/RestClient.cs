@@ -26,8 +26,7 @@ namespace Rest.Net
         private readonly HttpClient _httpClient = new HttpClient();
         private bool _useStats = false;
         private long _totalTime = 0;
-        private string _absolutePath;
-
+        private string _absolutePath = string.Empty;
 
         public RestClient()
         {
