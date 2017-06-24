@@ -18,9 +18,16 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <Version>1.0.4</Version>
+    <Version>1.0.6</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageReleaseNotes>1.0.4
+    <PackageReleaseNotes>1.0.6
+-----
+Minor bug fix
+
+1.0.5
+-----
+Minor bug fix
+1.0.4
 -----
 Allow using a base url with a relative path in it
 
@@ -31,8 +38,8 @@ Fix bug with authorization header setup
 1.0.2
 -----
 Fix bug that's causing a string response to raise an error flag</PackageReleaseNotes>
-    <AssemblyVersion>1.0.4.0</AssemblyVersion>
-    <FileVersion>1.0.4.0</FileVersion>
+    <AssemblyVersion>1.0.6.0</AssemblyVersion>
+    <FileVersion>1.0.6.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

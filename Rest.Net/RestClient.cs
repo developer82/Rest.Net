@@ -41,7 +41,10 @@ namespace Rest.Net
         public void SetBaseUrl(string url)
         {
             Uri uri = new Uri(url);
-            _absolutePath = uri.AbsolutePath;
+            if (uri.AbsolutePath.Length > 1)
+            {
+                _absolutePath = uri.AbsolutePath;
+            }
             _httpClient.BaseAddress = new Uri(url);
         }
 
