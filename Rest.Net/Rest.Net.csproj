@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <Description>A simple to use REST client for .NET Core</Description>
-    <Copyright>Copyright (c) 2016 Ophir Oren</Copyright>
+    <Copyright>Copyright (c) 2017 Ophir Oren</Copyright>
     <AssemblyTitle>REST.NET</AssemblyTitle>
     <Authors>Ophir Oren</Authors>
-    <TargetFramework>netstandard1.6</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>Rest.Net</AssemblyName>
     <PackageId>Rest.Net</PackageId>
@@ -13,14 +13,18 @@
     <PackageIconUrl>https://github.com/developer82/Rest.Net/blob/master/Logo.png?raw=true</PackageIconUrl>
     <PackageProjectUrl>https://github.com/developer82/Rest.Net</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/developer82/Rest.Net/blob/master/LICENSE</PackageLicenseUrl>
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
-    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <Version>1.0.6</Version>
+    <Version>2.0.0</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageReleaseNotes>1.0.6
+    <PackageReleaseNotes>2.0.0
+-----
+Update to .NET Standard 2.0. 
+Library version also updated to 2.0.0 to be consisted with the new 2.0. 
+For erlier .NET Core or .NET Standard versions, use version &lt; 2.0.0
+
+1.0.6
 -----
 Minor bug fix
 
@@ -38,12 +42,12 @@ Fix bug with authorization header setup
 1.0.2
 -----
 Fix bug that's causing a string response to raise an error flag</PackageReleaseNotes>
-    <AssemblyVersion>1.0.6.0</AssemblyVersion>
-    <FileVersion>1.0.6.0</FileVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
 
   <Target Name="PostcompileScript" AfterTargets="Build">
