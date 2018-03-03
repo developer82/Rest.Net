@@ -46,23 +46,23 @@ namespace Rest.Net
             throw new DidNotGetAroundToItOpenGithubIssueException();
         }
 
-        public void AddContent(string content)
+        public void SetContent(string content)
         {
-            AddContent(new StringContent(content, Encoding.UTF8, Headers.ContentType));
+            SetContent(new StringContent(content, Encoding.UTF8, Headers.ContentType));
         }
 
-        public void AddContent(object content, string contentType)
+        public void SetContent(object content, string contentType)
         {
             Headers.Add("Content-Type", contentType);
             Content = (HttpContent) content;
         }
 
-        public void AddContent(StringContent stringContent)
+        public void SetContent(StringContent stringContent)
         {
             Content = stringContent;
         }
 
-        public void AddContent(FormUrlEncodedContent formUrlEncodedContent)
+        public void SetContent(FormUrlEncodedContent formUrlEncodedContent)
         {
             Content = formUrlEncodedContent;
         }

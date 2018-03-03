@@ -267,7 +267,7 @@ namespace Rest.Net
             {
                 request.AddHeader("Content-Type", "application/json");
                 string stringContent = JsonConvert.SerializeObject(body);
-                request.AddContent(stringContent);
+                request.SetContent(stringContent);
             }
 
             return ExecuteAsync<T>(request, cancellationToken);
