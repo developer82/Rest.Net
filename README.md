@@ -2,6 +2,7 @@ REST.NET
 ===================
 
 [![Build status](https://ci.appveyor.com/api/projects/status/f28u80focj5laoee?svg=true)](https://ci.appveyor.com/project/developer82/rest-net)
+[![BuitlWithDot.Net shield](https://builtwithdot.net/project/39/rest.net/badge)](https://builtwithdot.net/project/39/rest.net)
 
 REST.NET is a simple REST and HTTP API Client for .NET Core.
 Why another REST client? When I started developing .NET core I couldn't find a suitable replacement for [RestSharp](https://github.com/restsharp/RestSharp) library that suits my needs, so I decided to create one. It's basically a wrapper around `HttpClient`, which makes API calls much simpler and with fewer lines of code.
