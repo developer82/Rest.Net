@@ -1,0 +1,119 @@
+using System.Collections.Generic;
+using System.Net;
+using FluentAssert;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Rest.Net.Interfaces;
+
+namespace Rest.Net.Tests
+{
+    [TestClass]
+    public class RestNetTests
+    {
+        public RestNetTests()
+        {
+            
+        }
+
+        [TestMethod]
+        public void ShouldBeAbleToExecuteGetRequestWithSpecificPoperty()
+        {
+            RestClient client = new RestClient("https://dummyapi.io/api/");
+            IRestResponse<List<User>> result = client.GetAsync<List<User>>("user", "data").Result;
+            
+            result.ShouldNotBeNull();
+            result.IsError.ShouldBeFalse();
+            result.StatusCode.ShouldBeEqualTo(HttpStatusCode.OK);
+            result.Data.ShouldNotBeNull();
+            result.Data.Count.ShouldBeGreaterThan(0);
+            result.Data[0].ShouldNotBeNull();
+        }
+
+        [TestMethod]
+        public void ShouldBeAbleToExecuteGetRequest()
+        {
+            RestClient client = new RestClient("https://jsonplaceholder.typicode.com/");
+            IRestResponse<List<Post>> result = client.GetAsync<List<Post>>("posts").Result;
+
+            result.ShouldNotBeNull();
+            result.IsError.ShouldBeFalse();
+            result.StatusCode.ShouldBeEqualTo(HttpStatusCode.OK);
+            result.Data.ShouldNotBeNull();
+            result.Data.Count.ShouldBeGreaterThan(0);
+            result.Data[0].ShouldNotBeNull();
+        }
+
+        [TestMethod]
+        public void ShouldBeAbleToExecuteGetRequestWithAnonymousDefinition()
+        {
+            var userDef = new
+            {
+                Id = 0,
+                NameTitle = string.Empty,
+                FirstName = string.Empty,
+                LastName = string.Empty,
+                Image = string.Empty
+            };
+
+            RestClient client = new RestClient("https://dummyapi.io/api/");
+            var result = client.GetAsync("user/1", userDef).Result;
+            
+            result.ShouldNotBeNull();
+            result.IsError.ShouldBeFalse();
+            result.StatusCode.ShouldBeEqualTo(HttpStatusCode.OK);
+            result.Data.ShouldNotBeNull();
+            result.Data.Id.ShouldBeEqualTo(1);
+        }
+
+        [TestMethod]
+        public void ShouldBeAbleToExecutePostRequest()
+        {
+            var postDef = new
+            {
+                Id = 0
+            };
+
+            RestClient client = new RestClient("https://jsonplaceholder.typicode.com/");
+            var result = client.PostAsync("posts", null, postDef).Result;
+
+            result.ShouldNotBeNull();
+            result.IsError.ShouldBeFalse();
+            result.StatusCode.ShouldBeEqualTo(HttpStatusCode.Created);
+            result.Data.ShouldNotBeNull();
+            result.Data.Id.ShouldBeGreaterThan(0);
+        }
+
+        [TestMethod]
+        public void ShouldBeAbleToExecutePutRequest()
+        {
+            var postDef = new
+            {
+                Id = 0
+            };
+
+            RestClient client = new RestClient("https://jsonplaceholder.typicode.com/");
+            var result = client.PutAsync("posts/1", null, postDef).Result;
+
+            result.ShouldNotBeNull();
+            result.IsError.ShouldBeFalse();
+            result.StatusCode.ShouldBeEqualTo(HttpStatusCode.OK);
+            result.Data.ShouldNotBeNull();
+            result.Data.Id.ShouldBeGreaterThan(0);
+        }
+
+        [TestMethod]
+        public void ShouldBeAbleToExecuteDeleteRequest()
+        {
+            var postDef = new
+            {
+                Id = 0
+            };
+
+            RestClient client = new RestClient("https://jsonplaceholder.typicode.com/");
+            var result = client.DeleteAsync("posts/1", null, postDef).Result;
+
+            result.ShouldNotBeNull();
+            result.IsError.ShouldBeFalse();
+            result.StatusCode.ShouldBeEqualTo(HttpStatusCode.OK);
+        }
+    }
+}

@@ -9,21 +9,24 @@ namespace Rest.Net
     public class RestRequest : IRestRequest
     {
         public string Path { get; private set; }
+        public string InnerProperty { get; }
         public RestCollection Parameters { get; private set; } = new RestCollection(RestCollection.CollectionType.QueryStringParameter);
         public RestCollection Headers { get; private set; } = new RestCollection(RestCollection.CollectionType.Header);
         public HttpMethod Method { get; }
         public HttpContent Content { get; private set; }
 
-        public RestRequest(string path, Http.Method method)
+        public RestRequest(string path, Http.Method method, string innerProperty)
         {
             Path = path;
             Method = GetHttpMethodFromRequest(method);
+            InnerProperty = innerProperty;
         }
 
-        public RestRequest(string path, HttpMethod method)
+        public RestRequest(string path, HttpMethod method, string innerProperty)
         {
             Path = path;
             Method = method;
+            InnerProperty = innerProperty;
         }
 
         public void AddUrlSegment(string identifier, string value)

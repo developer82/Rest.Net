@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Rest.Net.Exceptions;
@@ -13,25 +13,23 @@ using Rest.Net.Interfaces;
 
 namespace Rest.Net
 {
+    /// <summary>
+    /// Rest client for making http calls to a specific server
+    /// </summary>
     public class RestClient : IRestClient
     {
-        public Uri BaseUrl => _httpClient.BaseAddress;
-
-        public int RequestCount { get; private set; }
-        public long AvgRequestTimeMs { get; private set; }
-
-        public RestCollection Parameters { get; private set; } = new RestCollection(RestCollection.CollectionType.QueryStringParameter);
-        public RestCollection Headers { get; private set; } = new RestCollection(RestCollection.CollectionType.Header);
-
         private readonly HttpClient _httpClient = new HttpClient();
         private bool _useStats = false;
         private long _totalTime = 0;
         private string _absolutePath = string.Empty;
 
-        public RestClient()
-        {
+        public Uri BaseUrl => _httpClient.BaseAddress;
+        public int RequestCount { get; private set; }
+        public long AvgRequestTimeMs { get; private set; }
+        public RestCollection Parameters { get; private set; } = new RestCollection(RestCollection.CollectionType.QueryStringParameter);
+        public RestCollection Headers { get; private set; } = new RestCollection(RestCollection.CollectionType.Header);
 
-        }
+        public RestClient() { }
 
         public RestClient(string url)
         {
@@ -46,138 +44,6 @@ namespace Rest.Net
                 _absolutePath = uri.AbsolutePath;
             }
             _httpClient.BaseAddress = new Uri(url);
-        }
-
-        public IRestResponse<string> Execute(IRestRequest request)
-        {
-            return Execute<string>(request);
-        }
-
-        public IRestResponse<T> Execute<T>(IRestRequest request)
-        {
-            var responseTask = ExecuteAsync<T>(request);
-            return responseTask.Result;
-        }
-
-        public Task<IRestResponse<string>> ExecuteAsync(IRestRequest request)
-        {
-            return ExecuteAsync<string>(request);
-        }
-
-        public Task<IRestResponse<string>> ExecuteAsync(IRestRequest request, CancellationToken cancellationToken)
-        {
-            return ExecuteAsync<string>(request, cancellationToken);
-        }
-
-        public Task<IRestResponse<T>> ExecuteAsync<T>(IRestRequest request)
-        {
-            var cancellationToken = new CancellationToken();
-            return ExecuteAsync<T>(request, cancellationToken);
-        }
-
-        public IRestRequestAsyncHandler ExecuteAsync<T>(IRestRequest request, Action<IRestResponse<T>> callback)
-        {
-            var tokenSource = new CancellationTokenSource();
-            var cancellationToken = tokenSource.Token;
-
-            RestRequestAsyncHandler<T> requestAsyncHandler = new RestRequestAsyncHandler<T>
-            {
-                ExecutionTask = ExecuteAsync<T>(request, cancellationToken),
-                TokenSource = tokenSource
-            };
-
-            requestAsyncHandler.ExecutionTask.ContinueWith((antecedent) =>
-            {
-                callback.Invoke(antecedent.Result);
-            }, cancellationToken);
-
-            return requestAsyncHandler;
-        }
-
-        public Task<IRestResponse<T>> ExecuteAsync<T>(IRestRequest request, CancellationToken cancellationToken)
-        {
-            Task<IRestResponse<T>> result = Task<IRestResponse<T>>.Factory.StartNew(() =>
-            {
-                var response = new RestResponse<T>();
-
-                Stopwatch stopwatch = null;
-                if (_useStats)
-                {
-                    RequestCount++;
-                    stopwatch = new Stopwatch();
-                    stopwatch.Start();
-                }
-
-                var httpResponseMessage = ExecuteRequest(request).Result;
-
-                if (_useStats)
-                {
-                    stopwatch.Stop();
-                    response.RequestTime = stopwatch.Elapsed;
-                    response.RequestTimeMs = stopwatch.ElapsedMilliseconds;
-                    _totalTime += stopwatch.ElapsedMilliseconds;
-                    AvgRequestTimeMs = Convert.ToInt64(_totalTime / RequestCount);
-                }
-                
-                var typeOfT = typeof(T);
-                var responseBytes = httpResponseMessage.Content.ReadAsByteArrayAsync().Result;
-                var rawData = Encoding.UTF8.GetString(responseBytes);
-
-                var contentType =
-                    httpResponseMessage.Content.Headers.FirstOrDefault(h => h.Key.ToLower().Equals("content-type"));
-
-                if (contentType.Key != null)
-                {
-                    if (contentType.Value.First().StartsWith("application/json") && typeOfT.GetTypeInfo().IsClass)
-                    {
-                        try
-                        {
-                            object resultObject;
-                            if (typeOfT != typeof(string))
-                            {
-                                resultObject = JsonConvert.DeserializeObject<T>(rawData);
-                                response.Data = (T)resultObject;
-                            }
-                            else
-                            {
-                                response.Data = (T)Convert.ChangeType(rawData, typeof(T));
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            response.Exception = new SerializationException(typeOfT.ToString(), ex);
-                            response.IsError = true;
-                        }
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        response.Data = (T)Convert.ChangeType(rawData, typeof(T));
-                    }
-                    catch (Exception ex)
-                    {
-                        response.Exception = new ConversionException(typeOfT.ToString(), ex);
-                        response.IsError = true;
-                    }
-                }
-
-                int statusCode = (int) httpResponseMessage.StatusCode;
-                if (statusCode < 200 || statusCode > 300)
-                {
-                    response.IsError = true;
-                }
-
-                response.RawData = rawData;
-                response.StatusCode = httpResponseMessage.StatusCode;
-                response.Code = statusCode;
-                response.OriginalHttpResponseMessage = httpResponseMessage;
-                
-                return response;
-            }, cancellationToken);
-
-            return result;
         }
 
         public void AddParameter(string name, string value)
@@ -195,23 +61,127 @@ namespace Rest.Net
             _useStats = true;
         }
 
-        private Task<HttpResponseMessage> ExecuteRequest(IRestRequest request)
+        #region ExecuteAsync
+        public async Task<IRestResponse<string>> ExecuteAsync(IRestRequest request)
+        {
+            return await ExecuteAsync<string>(request);
+        }
+        public async Task<IRestResponse<T>> ExecuteAsync<T>(IRestRequest request)
+        {
+            var response = new RestResponse<T>();
+
+            var stopwatch = StartStatsCount();
+            var httpResponseMessage = await ExecuteRequest(request);
+            StopStatsCount<T>(stopwatch, response);
+
+            await SerializeResponse(request, httpResponseMessage, response);
+
+            int statusCode = (int) httpResponseMessage.StatusCode;
+            if (statusCode < 200 || statusCode > 300)
+            {
+                response.IsError = true;
+            }
+
+            response.StatusCode = httpResponseMessage.StatusCode;
+            response.Code = statusCode;
+            response.OriginalHttpResponseMessage = httpResponseMessage;
+            
+            return response;
+        }
+        #endregion
+
+        #region GET
+        public async Task<IRestResponse<string>> GetAsync(string path)
+        {
+            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Get);
+        }
+
+        public async Task<IRestResponse<T>> GetAsync<T>(string path)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Get);
+        }
+
+        public async Task<IRestResponse<T>> GetAsync<T>(string path, T anonymousTypeObject)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Get);
+        }
+
+        public async Task<IRestResponse<T>> GetAsync<T>(string path, string innerProperty)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Get, null, innerProperty);
+        }
+        #endregion
+
+        #region PUT
+        public async Task<IRestResponse<string>> PutAsync(string path, object body)
+        {
+            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Put, body);
+        }
+
+        public async Task<IRestResponse<T>> PutAsync<T>(string path, object body)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, body);
+        }
+
+        public async Task<IRestResponse<T>> PutAsync<T>(string path, object body, T anonymousTypeObject)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, body);
+        }
+
+        #endregion
+
+        #region POST
+        public async Task<IRestResponse<string>> PostAsync(string path, object body)
+        {
+            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Post, body);
+        }
+
+        public async Task<IRestResponse<T>> PostAsync<T>(string path, object body)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, body);
+        }
+
+        public async Task<IRestResponse<T>> PostAsync<T>(string path, object body, T anonymousTypeObject)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, body);
+        }
+
+        #endregion
+
+        #region DELETE
+        public async Task<IRestResponse<string>> DeleteAsync(string path, object body)
+        {
+            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Delete, body);
+        }
+
+        public async Task<IRestResponse<T>> DeleteAsync<T>(string path, object body)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, body);
+        }
+
+        public async Task<IRestResponse<T>> DeleteAsync<T>(string path, object body, T anonymousTypeObject)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, body);
+        }
+
+        #endregion
+
+        private async Task<HttpResponseMessage> ExecuteRequest(IRestRequest request)
         {
             string queryString = CreateQueryStringFromRequest(request);
-            
+
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.Method, _absolutePath + request.Path + queryString);
-            
+
             CreateHeadersFromRequest(request, httpRequestMessage);
             httpRequestMessage.Content = request.Content;
 
-            var httpResponseMessage = _httpClient.SendAsync(httpRequestMessage);
-            return httpResponseMessage;
+            return await _httpClient.SendAsync(httpRequestMessage);
         }
 
         private string CreateQueryStringFromRequest(IRestRequest request)
         {
             string result = string.Empty;
-            
+
             request.Parameters.MergeWith(Parameters);
             foreach (var parameter in request.Parameters)
             {
@@ -259,10 +229,10 @@ namespace Rest.Net
             return urlQuerystringParts[0] + result;
         }
 
-        private Task<IRestResponse<T>> GenerateRestRequestAndExecute<T>(string path, HttpMethod method, object body, CancellationToken cancellationToken = default(CancellationToken), Action<IRestResponse<T>> callback = null)
+        private async Task<IRestResponse<T>> GenerateRestRequestAndExecute<T>(string path, HttpMethod method, object body = null, string innerProperty = null)
         {
             path = UrlEncodePath(path);
-            IRestRequest request = new RestRequest(path, method);
+            IRestRequest request = new RestRequest(path, method, innerProperty);
             if (body != null)
             {
                 request.AddHeader("Content-Type", "application/json");
@@ -270,147 +240,96 @@ namespace Rest.Net
                 request.SetContent(stringContent);
             }
 
-            return ExecuteAsync<T>(request, cancellationToken);
-        }
-        
-        public IRestResponse<string> Get(string path)
-        {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Get, null).Result;
+            return await ExecuteAsync<T>(request);
         }
 
-        public IRestResponse<T> Get<T>(string path)
+        private async Task SerializeResponse<T>(IRestRequest request, HttpResponseMessage httpResponseMessage, RestResponse<T> response)
         {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Get, null).Result;
+            var typeOfT = typeof(T);
+            var contentType =
+                httpResponseMessage.Content.Headers.FirstOrDefault(h => h.Key.ToLower().Equals("content-type"));
+            var responseBytes = await httpResponseMessage.Content.ReadAsByteArrayAsync();
+            var rawData = Encoding.UTF8.GetString(responseBytes);
+            response.RawData = rawData;
+
+            if (contentType.Key != null)
+            {
+                if (contentType.Value.First().StartsWith("application/json") && typeOfT.GetTypeInfo().IsClass)
+                {
+                    try
+                    {
+                        if (typeOfT == typeof(string))
+                        {
+                            response.Data = (T)Convert.ChangeType(rawData, typeof(T));
+                        }
+                        else
+                        {
+                            if (string.IsNullOrWhiteSpace(request.InnerProperty))
+                            {
+                                object resultObject = JsonConvert.DeserializeObject<T>(rawData);
+                                response.Data = (T)resultObject;
+                            }
+                            else
+                            {
+                                using (var stringReader = new StringReader(rawData))
+                                using (var jsonReader = new JsonTextReader(stringReader))
+                                {
+                                    while (jsonReader.Read())
+                                    {
+                                        if (jsonReader.TokenType == JsonToken.PropertyName &&
+                                            (string)jsonReader.Value == request.InnerProperty)
+                                        {
+                                            jsonReader.Read();
+
+                                            var serializer = new JsonSerializer();
+                                            response.Data = serializer.Deserialize<T>(jsonReader);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        response.Exception = new SerializationException(typeOfT.ToString(), ex);
+                        response.IsError = true;
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    response.Data = (T)Convert.ChangeType(rawData, typeof(T));
+                }
+                catch (Exception ex)
+                {
+                    response.Exception = new ConversionException(typeOfT.ToString(), ex);
+                    response.IsError = true;
+                }
+            }
         }
 
-        public Task<IRestResponse<string>> GetAsync(string path)
+        private Stopwatch StartStatsCount()
         {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Get, null);
+            if (!_useStats) return null;
+
+            RequestCount++;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            return stopwatch;
         }
 
-        public Task<IRestResponse<string>> GetAsync(string path, CancellationToken cancellationToken)
+        private void StopStatsCount<T>(Stopwatch stopwatch, RestResponse<T> response)
         {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Get, null, cancellationToken);
-        }
-
-        public Task<IRestResponse<T>> GetAsync<T>(string path)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Get, null);
-        }
-
-        public Task<IRestResponse<T>> GetAsync<T>(string path, CancellationToken cancellationToken)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Get, null, cancellationToken);
-        }
-
-        public IRestRequestAsyncHandler GetAsync<T>(string path, Action<IRestResponse<T>> callback)
-        {
-            throw new DidNotGetAroundToItOpenGithubIssueException();
-        }
-
-        public IRestResponse<string> Put(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Put, body).Result;
-        }
-
-        public IRestResponse<T> Put<T>(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, body).Result;
-        }
-
-        public Task<IRestResponse<string>> PutAsync(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Put, body);
-        }
-
-        public Task<IRestResponse<string>> PutAsync(string path, object body, CancellationToken cancellationToken)
-        {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Put, body, cancellationToken);
-        }
-
-        public Task<IRestResponse<T>> PutAsync<T>(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, body);
-        }
-
-        public Task<IRestResponse<T>> PutAsync<T>(string path, object body, CancellationToken cancellationToken)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, body, cancellationToken);
-        }
-
-        public IRestRequestAsyncHandler PutAsync<T>(string path, object body, Action<IRestResponse<T>> callback)
-        {
-            throw new DidNotGetAroundToItOpenGithubIssueException();
-        }
-
-        public IRestResponse<string> Post(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Post, body).Result;
-        }
-
-        public IRestResponse<T> Post<T>(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, body).Result;
-        }
-
-        public Task<IRestResponse<string>> PostAsync(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Post, body);
-        }
-
-        public Task<IRestResponse<string>> PostAsync(string path, object body, CancellationToken cancellationToken)
-        {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Post, body, cancellationToken);
-        }
-
-        public Task<IRestResponse<T>> PostAsync<T>(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, body);
-        }
-
-        public Task<IRestResponse<T>> PostAsync<T>(string path, object body, CancellationToken cancellationToken)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, body, cancellationToken);
-        }
-
-        public IRestRequestAsyncHandler PostAsync<T>(string path, object body, Action<IRestResponse<T>> callback)
-        {
-            throw new DidNotGetAroundToItOpenGithubIssueException();
-        }
-
-        public IRestResponse<string> Delete(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Delete, body).Result;
-        }
-
-        public IRestResponse<T> Delete<T>(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, body).Result;
-        }
-
-        public Task<IRestResponse<string>> DeleteAsync(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Delete, body);
-        }
-
-        public Task<IRestResponse<string>> DeleteAsync(string path, object body, CancellationToken cancellationToken)
-        {
-            return GenerateRestRequestAndExecute<string>(path, HttpMethod.Delete, body, cancellationToken);
-        }
-
-        public Task<IRestResponse<T>> DeleteAsync<T>(string path, object body)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, body);
-        }
-
-        public Task<IRestResponse<T>> DeleteAsync<T>(string path, object body, CancellationToken cancellationToken)
-        {
-            return GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, body, cancellationToken);
-        }
-
-        public IRestRequestAsyncHandler DeleteAsync<T>(string path, object body, Action<IRestResponse<T>> callback)
-        {
-            throw new DidNotGetAroundToItOpenGithubIssueException();
+            if (!_useStats) return;
+            
+            stopwatch.Stop();
+            response.RequestTime = stopwatch.Elapsed;
+            response.RequestTimeMs = stopwatch.ElapsedMilliseconds;
+            _totalTime += stopwatch.ElapsedMilliseconds;
+            AvgRequestTimeMs = Convert.ToInt64(_totalTime / RequestCount);
         }
     }
 }

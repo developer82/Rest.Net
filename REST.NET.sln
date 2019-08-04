@@ -1,9 +1,10 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26114.2
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29123.88
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rest.Net", "Rest.Net\Rest.Net.csproj", "{DCC08390-72EF-42BD-A371-F123491BD570}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rest.Net", "Rest.Net\Rest.Net.csproj", "{DCC08390-72EF-42BD-A371-F123491BD570}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rest.Net.Tests", "Rest.Net.Tests\Rest.Net.Tests.csproj", "{454798DC-6291-4BA0-8E8B-459A7594B9F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +16,15 @@ Global
 		{DCC08390-72EF-42BD-A371-F123491BD570}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCC08390-72EF-42BD-A371-F123491BD570}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCC08390-72EF-42BD-A371-F123491BD570}.Release|Any CPU.Build.0 = Release|Any CPU
+		{454798DC-6291-4BA0-8E8B-459A7594B9F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{454798DC-6291-4BA0-8E8B-459A7594B9F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{454798DC-6291-4BA0-8E8B-459A7594B9F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{454798DC-6291-4BA0-8E8B-459A7594B9F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DA2B6301-CE8C-46F5-B730-191216FF9F04}
 	EndGlobalSection
 EndGlobal

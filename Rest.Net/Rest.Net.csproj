@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>A simple to use REST client for .NET Core</Description>
-    <Copyright>Copyright (c) 2017 Ophir Oren</Copyright>
+    <Copyright>Copyright (c) 2019 Ophir Oren</Copyright>
     <AssemblyTitle>REST.NET</AssemblyTitle>
     <Authors>Ophir Oren</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -16,9 +16,17 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <Version>2.0.1</Version>
+    <Version>2.1.0</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageReleaseNotes>2.0.1
+    <PackageReleaseNotes>2.1.0
+-----
+Major refactoring.
+Library is not more async and opinionated - Working with tasks is now completly async.
+Remove unneeded overloads and code making the library smaller and more lightweight.
+Support for internal response properties serialization.
+Support returning anonymous types as result from an API call.
+
+2.0.1
 -----
 Change the request AddContent to SetContent to be more explicit about what this method actually does (add implies that more Content can later be added, but in reality it overrides existing Content).
 
@@ -46,12 +54,12 @@ Fix bug with authorization header setup
 1.0.2
 -----
 Fix bug that's causing a string response to raise an error flag</PackageReleaseNotes>
-    <AssemblyVersion>2.0.1.0</AssemblyVersion>
-    <FileVersion>2.0.1.0</FileVersion>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <FileVersion>2.1.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 
   <Target Name="PostcompileScript" AfterTargets="Build">

@@ -5,6 +5,7 @@ namespace Rest.Net.Interfaces
     public interface IRestRequest
     {
         string Path { get; }
+        string InnerProperty { get; }
         HttpMethod Method{ get; }
         HttpContent Content { get; }
         RestCollection Parameters { get; }
