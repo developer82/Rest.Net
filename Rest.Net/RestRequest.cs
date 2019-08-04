@@ -15,14 +15,14 @@ namespace Rest.Net
         public HttpMethod Method { get; }
         public HttpContent Content { get; private set; }
 
-        public RestRequest(string path, Http.Method method, string innerProperty)
+        public RestRequest(string path, Http.Method method, string innerProperty = null)
         {
             Path = path;
             Method = GetHttpMethodFromRequest(method);
             InnerProperty = innerProperty;
         }
 
-        public RestRequest(string path, HttpMethod method, string innerProperty)
+        public RestRequest(string path, HttpMethod method, string innerProperty = null)
         {
             Path = path;
             Method = method;
