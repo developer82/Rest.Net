@@ -169,13 +169,30 @@ namespace Rest.Net
         private async Task<HttpResponseMessage> ExecuteRequest(IRestRequest request)
         {
             string queryString = CreateQueryStringFromRequest(request);
-
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.Method, _absolutePath + request.Path + queryString);
+                        
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.Method, BuildPath(_absolutePath, request.Path) + queryString);
 
             CreateHeadersFromRequest(request, httpRequestMessage);
             httpRequestMessage.Content = request.Content;
 
             return await _httpClient.SendAsync(httpRequestMessage);
+        }
+
+        private string BuildPath(params string[] parts)
+        {
+            string result = string.Empty;
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                string part = parts[i];
+                if (part.StartsWith("/"))
+                {
+                    part = part.Substring(1, part.Length - 1);
+                }
+                result += "/" + part;
+            }
+
+            return result;
         }
 
         private string CreateQueryStringFromRequest(IRestRequest request)
