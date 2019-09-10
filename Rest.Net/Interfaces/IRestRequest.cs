@@ -6,6 +6,7 @@ namespace Rest.Net.Interfaces
     {
         string Path { get; }
         string InnerProperty { get; }
+        bool RequiresAuthentication { get; set; }
         HttpMethod Method{ get; }
         HttpContent Content { get; }
         RestCollection Parameters { get; }
@@ -20,6 +21,5 @@ namespace Rest.Net.Interfaces
         void SetContent(StringContent stringContent);
         void SetContent(FormUrlEncodedContent formUrlEncodedContent);
         void SetAuthentication(Http.AuthenticationMethod authenticationMethod, string token);
-        void SetAuthentication(Http.AuthenticationMethod authenticationMethod, string username, string password);
     }
 }

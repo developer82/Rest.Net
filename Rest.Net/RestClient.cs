@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,16 +19,17 @@ namespace Rest.Net
     /// </summary>
     public class RestClient : IRestClient
     {
-        private readonly HttpClient _httpClient = new HttpClient();
         private bool _useStats = false;
         private long _totalTime = 0;
         private string _absolutePath = string.Empty;
+        private Uri _baseUrl;
 
-        public Uri BaseUrl => _httpClient.BaseAddress;
+        public Uri BaseUrl => _baseUrl;
         public int RequestCount { get; private set; }
         public long AvgRequestTimeMs { get; private set; }
         public RestCollection Parameters { get; private set; } = new RestCollection(RestCollection.CollectionType.QueryStringParameter);
         public RestCollection Headers { get; private set; } = new RestCollection(RestCollection.CollectionType.Header);
+        public IAuthentication Authentication { get; set; }
 
         public RestClient() { }
 
@@ -38,12 +40,11 @@ namespace Rest.Net
 
         public void SetBaseUrl(string url)
         {
-            Uri uri = new Uri(url);
-            if (uri.AbsolutePath.Length > 1)
+            _baseUrl = new Uri(url);
+            if (_baseUrl.AbsolutePath.Length > 1)
             {
-                _absolutePath = uri.AbsolutePath;
+                _absolutePath = _baseUrl.AbsolutePath;
             }
-            _httpClient.BaseAddress = new Uri(url);
         }
 
         public void AddParameter(string name, string value)
@@ -66,9 +67,15 @@ namespace Rest.Net
         {
             return await ExecuteAsync<string>(request);
         }
+
         public async Task<IRestResponse<T>> ExecuteAsync<T>(IRestRequest request)
         {
             var response = new RestResponse<T>();
+
+            if (request.RequiresAuthentication && Authentication != null)
+            {
+                await Authentication?.SetRequestAuthentication(request);
+            }
 
             var stopwatch = StartStatsCount();
             var httpResponseMessage = await ExecuteRequest(request);
@@ -88,80 +95,85 @@ namespace Rest.Net
             
             return response;
         }
+
+        public async Task<IRestResponse<T>> ExecuteAsync<T>(IRestRequest request, T anonymousTypeObject)
+        {
+            return await ExecuteAsync<T>(request);
+        }
         #endregion
 
         #region GET
-        public async Task<IRestResponse<string>> GetAsync(string path)
+        public async Task<IRestResponse<string>> GetAsync(string path, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Get);
+            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Get, requiresAuthentication);
         }
 
-        public async Task<IRestResponse<T>> GetAsync<T>(string path)
+        public async Task<IRestResponse<T>> GetAsync<T>(string path, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Get);
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Get, requiresAuthentication);
         }
 
-        public async Task<IRestResponse<T>> GetAsync<T>(string path, T anonymousTypeObject)
+        public async Task<IRestResponse<T>> GetAsync<T>(string path, T anonymousTypeObject, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Get);
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Get, requiresAuthentication);
         }
 
-        public async Task<IRestResponse<T>> GetAsync<T>(string path, string innerProperty)
+        public async Task<IRestResponse<T>> GetAsync<T>(string path, string innerProperty, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Get, null, innerProperty);
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Get, requiresAuthentication, null, innerProperty);
         }
         #endregion
 
         #region PUT
-        public async Task<IRestResponse<string>> PutAsync(string path, object body)
+        public async Task<IRestResponse<string>> PutAsync(string path, object body, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Put, body);
+            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Put, requiresAuthentication, body, null);
         }
 
-        public async Task<IRestResponse<T>> PutAsync<T>(string path, object body)
+        public async Task<IRestResponse<T>> PutAsync<T>(string path, object body, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, body);
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, requiresAuthentication, body, null);
         }
 
-        public async Task<IRestResponse<T>> PutAsync<T>(string path, object body, T anonymousTypeObject)
+        public async Task<IRestResponse<T>> PutAsync<T>(string path, object body, T anonymousTypeObject, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, body);
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, requiresAuthentication, body, null);
         }
 
         #endregion
 
         #region POST
-        public async Task<IRestResponse<string>> PostAsync(string path, object body)
+        public async Task<IRestResponse<string>> PostAsync(string path, object body, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Post, body);
+            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Post, requiresAuthentication, body, null);
         }
 
-        public async Task<IRestResponse<T>> PostAsync<T>(string path, object body)
+        public async Task<IRestResponse<T>> PostAsync<T>(string path, object body, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, body);
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, requiresAuthentication, body, null);
         }
 
-        public async Task<IRestResponse<T>> PostAsync<T>(string path, object body, T anonymousTypeObject)
+        public async Task<IRestResponse<T>> PostAsync<T>(string path, object body, T anonymousTypeObject, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, body);
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, requiresAuthentication, body, null);
         }
 
         #endregion
 
         #region DELETE
-        public async Task<IRestResponse<string>> DeleteAsync(string path, object body)
+        public async Task<IRestResponse<string>> DeleteAsync(string path, object body, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Delete, body);
+            return await GenerateRestRequestAndExecute<string>(path, HttpMethod.Delete, requiresAuthentication, body, null);
         }
 
-        public async Task<IRestResponse<T>> DeleteAsync<T>(string path, object body)
+        public async Task<IRestResponse<T>> DeleteAsync<T>(string path, object body, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, body);
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, requiresAuthentication, body, null);
         }
 
-        public async Task<IRestResponse<T>> DeleteAsync<T>(string path, object body, T anonymousTypeObject)
+        public async Task<IRestResponse<T>> DeleteAsync<T>(string path, object body, T anonymousTypeObject, bool requiresAuthentication = true)
         {
-            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, body);
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, requiresAuthentication, body, null);
         }
 
         #endregion
@@ -169,13 +181,23 @@ namespace Rest.Net
         private async Task<HttpResponseMessage> ExecuteRequest(IRestRequest request)
         {
             string queryString = CreateQueryStringFromRequest(request);
-                        
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.Method, BuildPath(_absolutePath, request.Path) + queryString);
 
-            CreateHeadersFromRequest(request, httpRequestMessage);
+            string path = BuildPath(_absolutePath, request.Path);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.Method, path + queryString);
+
             httpRequestMessage.Content = request.Content;
+            CreateHeadersFromRequest(request, httpRequestMessage);
 
-            return await _httpClient.SendAsync(httpRequestMessage);
+            var handler = new HttpRedirectClientHandler()
+            {
+                InnerHandler = new HttpClientHandler()
+                {
+                    AllowAutoRedirect = false
+                }
+            };
+            HttpClient httpClient = new HttpClient(handler);
+            httpClient.BaseAddress = _baseUrl;
+            return await httpClient.SendAsync(httpRequestMessage);
         }
 
         private string BuildPath(params string[] parts)
@@ -185,6 +207,12 @@ namespace Rest.Net
             for (int i = 0; i < parts.Length; i++)
             {
                 string part = parts[i];
+
+                if (string.IsNullOrWhiteSpace(part))
+                {
+                    continue;
+                }
+
                 if (part.StartsWith("/"))
                 {
                     part = part.Substring(1, part.Length - 1);
@@ -217,7 +245,15 @@ namespace Rest.Net
                 {
                     continue;
                 }
-                httpRequestMessage.Headers.Add(header.Key, header.Value);
+                else if (header.Key.ToLower() == "authorization")
+                {
+                    string[] authHeader = header.Value.Split(' ');
+                    httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue(authHeader[0], authHeader[1]);
+                }
+                else
+                {
+                    httpRequestMessage.Headers.Add(header.Key, header.Value);
+                }
             }
         }
 
@@ -246,7 +282,7 @@ namespace Rest.Net
             return urlQuerystringParts[0] + result;
         }
 
-        private async Task<IRestResponse<T>> GenerateRestRequestAndExecute<T>(string path, HttpMethod method, object body = null, string innerProperty = null)
+        private async Task<IRestResponse<T>> GenerateRestRequestAndExecute<T>(string path, HttpMethod method, bool requiresAuthentication = true, object body = null, string innerProperty = null)
         {
             path = UrlEncodePath(path);
             IRestRequest request = new RestRequest(path, method, innerProperty);
@@ -256,6 +292,7 @@ namespace Rest.Net
                 string stringContent = JsonConvert.SerializeObject(body);
                 request.SetContent(stringContent);
             }
+            request.RequiresAuthentication = requiresAuthentication;
 
             return await ExecuteAsync<T>(request);
         }

@@ -10,11 +10,12 @@ namespace Rest.Net
     {
         public string Path { get; private set; }
         public string InnerProperty { get; }
+        public bool RequiresAuthentication { get; set; }
         public RestCollection Parameters { get; private set; } = new RestCollection(RestCollection.CollectionType.QueryStringParameter);
         public RestCollection Headers { get; private set; } = new RestCollection(RestCollection.CollectionType.Header);
         public HttpMethod Method { get; }
         public HttpContent Content { get; private set; }
-
+        
         public RestRequest(string path, Http.Method method, string innerProperty = null)
         {
             Path = path;
@@ -72,7 +73,8 @@ namespace Rest.Net
 
         public void SetAuthentication(Http.AuthenticationMethod authenticationMethod, string token)
         {
-            string authentication = string.Empty;
+            // TODO: add support for more authntication types
+            string authentication = null;
 
             switch (authenticationMethod)
             {
@@ -85,31 +87,16 @@ namespace Rest.Net
                     break;
             }
 
-            if (!string.IsNullOrEmpty(authentication))
+            if (string.IsNullOrEmpty(Headers.AuthorizationHeader))
             {
-                if (string.IsNullOrEmpty(Headers.AuthorizationHeader))
-                {
-                    Headers.Add("Authorization", authentication);
-                }
-                else
-                {
-                    Headers["Authorization"] = authentication;
-                }
+                Headers.Add("Authorization", authentication);
+            }
+            else
+            {
+                Headers["Authorization"] = authentication;
             }
         }
-
-        public void SetAuthentication(Http.AuthenticationMethod authenticationMethod, string username, string password)
-        {
-            if (string.IsNullOrEmpty(username))
-                throw new ArgumentException("Username is required", nameof(username));
-
-            if (string.IsNullOrEmpty(password))
-                throw new ArgumentException("Password is required", nameof(password));
-
-            string token = Base64Encode(username + ":" + password);
-            SetAuthentication(authenticationMethod, token);
-        }
-
+        
         private HttpMethod GetHttpMethodFromRequest(Http.Method method)
         {
             switch (method)
