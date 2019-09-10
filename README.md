@@ -11,6 +11,8 @@ Why another REST client? When I started developing .NET core I couldn't find a s
 > I'm developing this library per my project needs on my free time. So not everything you expect might be here and I didn't have a chance to check everything up.
 > You are welcome to help (even reporting known bugs or suggesting features by [opening](https://github.com/developer82/Rest.Net/issues/new) an issue is helpful).
 
+> **Pro tip:** Much can be learned from having a look at the Unit Tests project ;)
+
 ----------
 
 
