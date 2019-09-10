@@ -16,9 +16,19 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <Version>2.1.1</Version>
+    <Version>2.2.0</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageReleaseNotes>2.1.0
+    <PackageReleaseNotes>2.2.0
+-----
+- New PathBuilder method will now make sure that all URL are valid, even if a path or base path lacks the backslash char ('/').
+- Additional methods and properties documentations.
+- Redirect bug fix.
+- Same client can now handle multiple cuncurrent calls.
+- Anonymous object support when using ExecuteAsync.
+- Setting call authentication - allows auto authentication handling.
+- OAuth2 authenticator.
+
+2.1.0
 -----
 Major refactoring.
 Library is not more async and opinionated - Working with tasks is now completly async.
@@ -54,8 +64,8 @@ Fix bug with authorization header setup
 1.0.2
 -----
 Fix bug that's causing a string response to raise an error flag</PackageReleaseNotes>
-    <AssemblyVersion>2.1.1.0</AssemblyVersion>
-    <FileVersion>2.1.1.0</FileVersion>
+    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <FileVersion>2.2.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
