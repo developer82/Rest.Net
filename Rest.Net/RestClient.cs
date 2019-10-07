@@ -140,6 +140,10 @@ namespace Rest.Net
             return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, requiresAuthentication, body, null);
         }
 
+        public async Task<IRestResponse<T>> PutAsync<T>(string path, object body, string innerProperty, bool requiresAuthentication = true)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Put, requiresAuthentication, body, innerProperty);
+        }
         #endregion
 
         #region POST
@@ -158,6 +162,10 @@ namespace Rest.Net
             return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, requiresAuthentication, body, null);
         }
 
+        public async Task<IRestResponse<T>> PostAsync<T>(string path, object body, string innerProperty, bool requiresAuthentication = true)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Post, requiresAuthentication, body, innerProperty);
+        }
         #endregion
 
         #region DELETE
@@ -176,6 +184,10 @@ namespace Rest.Net
             return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, requiresAuthentication, body, null);
         }
 
+        public async Task<IRestResponse<T>> DeleteAsync<T>(string path, object body, string innerProperty, bool requiresAuthentication = true)
+        {
+            return await GenerateRestRequestAndExecute<T>(path, HttpMethod.Delete, requiresAuthentication, body, innerProperty);
+        }
         #endregion
 
         private async Task<HttpResponseMessage> ExecuteRequest(IRestRequest request)

@@ -92,6 +92,7 @@ namespace Rest.Net.Interfaces
         Task<IRestResponse<T>> PutAsync<T>(string path, object body, bool requiresAuthentication);
 
         Task<IRestResponse<T>> PutAsync<T>(string path, object body, T anonymousTypeObject, bool requiresAuthentication);
+        Task<IRestResponse<T>> PutAsync<T>(string path, object body, string innerProperty, bool requiresAuthentication);
         #endregion
 
         #region POST
@@ -100,6 +101,7 @@ namespace Rest.Net.Interfaces
         Task<IRestResponse<T>> PostAsync<T>(string path, object body, bool requiresAuthentication);
 
         Task<IRestResponse<T>> PostAsync<T>(string path, object body,  T anonymousTypeObject, bool requiresAuthentication);
+        Task<IRestResponse<T>> PostAsync<T>(string path, object body, string innerProperty, bool requiresAuthentication);
         #endregion
 
         #region DELETE
@@ -108,6 +110,7 @@ namespace Rest.Net.Interfaces
         Task<IRestResponse<T>> DeleteAsync<T>(string path, object body, bool requiresAuthentication);
 
         Task<IRestResponse<T>> DeleteAsync<T>(string path, object body, T anonymousTypeObject, bool requiresAuthentication);
+        Task<IRestResponse<T>> DeleteAsync<T>(string path, object body, string innerProperty, bool requiresAuthentication);
         #endregion
     }
 }
