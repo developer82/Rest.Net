@@ -165,19 +165,6 @@ namespace Rest.Net.Tests
             result.Data.Count.ShouldBeGreaterThan(0);
         }
 
-        [TestMethod]
-        public void ShouldWork()
-        {
-            OAuth2Authenticator authenticator = new OAuth2Authenticator("http://localhost:5000", "", "", "ophir.oren@gmail.com", "123456");
-            RestClient client = new RestClient("http://localhost:5000")
-            {
-                Authentication = authenticator
-            };
-
-            OAuth2Authenticator authenticator1 = (OAuth2Authenticator)client.Authentication;
-            var result = authenticator1.Login().Result;
-        }
-
         private string GetRefreshToken(string clientId, string clientSecret, string username, string password)
         {
             IRestClient client = new RestClient("http://localhost:5000");
