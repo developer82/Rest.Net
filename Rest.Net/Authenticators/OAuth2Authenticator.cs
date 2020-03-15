@@ -103,7 +103,7 @@ namespace Rest.Net.Authenticators
             authRequest.SetContent(new FormUrlEncodedContent(formContent));
             var response = await client.ExecuteAsync<AuthResponse>(authRequest);
 
-            if (!string.IsNullOrEmpty(response.Data.AccessToken))
+            if (response.StatusCode == System.Net.HttpStatusCode.OK && !string.IsNullOrEmpty(response.Data.AccessToken))
             {
                 _token = response.Data.AccessToken;
                 _refreshToken = response.Data.RefreshToken;
